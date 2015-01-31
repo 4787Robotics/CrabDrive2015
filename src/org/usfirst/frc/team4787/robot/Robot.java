@@ -27,18 +27,21 @@ import edu.wpi.first.wpilibj.Timer;
 public class Robot extends SampleRobot {
     Joystick stick;
     
-    final int FLEFT_PWM = 1, BLEFT_PWM = 2, FRIGHT_PWM = 3, BRIGHT_PWM = 4, PERP_PWM = 5; //perp = perpendicular to others
+    final int FLEFT_PWM = 1, BLEFT_PWM = 2, FRIGHT_PWM = 3, BRIGHT_PWM = 4, PERP_PWM = 5, MECH1_PWM = 6, MECH2_PWM = 7; //perp = perpendicular to others
+    final int MECH_UP = 3, MECH_DOWN = 2; // buttons 
     final int TRIGGER = 1;
     final double DEADZONEX = 0.05, DEADZONEY = 0.05;
     double expX, expY;
-    
-    double x, y;
+    double m = 0.5;
+    double x, y, z;
     boolean STRAFEMODE;
     Jaguar fLeft = new Jaguar(FLEFT_PWM);
     Jaguar bLeft = new Jaguar(BLEFT_PWM);
     Jaguar fRight= new Jaguar(FRIGHT_PWM);
     Jaguar bRight = new Jaguar(BRIGHT_PWM);
     Jaguar perp = new Jaguar(PERP_PWM);
+    Jaguar mech1 = new Jaguar(MECH1_PWM);
+    Jaguar mech2 = new Jaguar (MECH2_PWM);
     
     
     public Robot() {
@@ -49,6 +52,9 @@ public class Robot extends SampleRobot {
      * Drive left & right motors for 2 seconds then stop
      */
     public void autonomous() {
+    	while(true){
+    		System.out.println();
+    	}
     }
 
     /**
@@ -58,17 +64,18 @@ public class Robot extends SampleRobot {
     	while(true){
     		x = stick.getX();
     		y = stick.getY();
+    		z = -(stick.getZ()); // Throttle control
     		STRAFEMODE = !stick.getRawButton(TRIGGER);
 	    	if (STRAFEMODE)
 	    	{
 	    		if(Math.abs(x) < DEADZONEX){
-	    			perp.set(x);
+	    			perp.set(x * z);
 	    		}
 	    		if(Math.abs(y) < DEADZONEY){
-	    			fLeft.set(-y);
-	    			bLeft.set(-y);
-	    			fRight.set(-y);
-	    			bRight.set(-y);
+	    			fLeft.set(-y * z);
+	    			bLeft.set(-y * z);
+	    			fRight.set(-y * z);
+	    			bRight.set(-y * z);
 	    		}
 	    	}
 	    	else
@@ -80,10 +87,20 @@ public class Robot extends SampleRobot {
 	    			expY = Math.pow(y, 3); // y^3 for nonlinear control
 	    		}
 	    	    // Motor power settings
-	    		fLeft.set(expX - expY);
-	    		bLeft.set(expX - expY);
-	    		fRight.set(expX + expY);
-	    		bRight.set(expX + expY);
+	    		fLeft.set((expX - expY) * z);
+	    		bLeft.set((expX - expY) * z);
+	    		fRight.set((expX + expY) * z);
+	    		bRight.set((expX + expY) * z);
+	    	}
+	    	if (stick.getRawButton(MECH_UP)){
+	    		mech1.set(m);
+	    		mech2.set(m);
+	    	}else if(stick.getRawButton(MECH_DOWN)){
+	    		mech1.set(-m);
+	    		mech2.set(-m);
+	    	}else{
+	    		mech1.set(0);
+	    		mech2.set(0);
 	    	}
     	}
     }

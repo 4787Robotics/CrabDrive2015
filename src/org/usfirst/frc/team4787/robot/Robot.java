@@ -4,9 +4,8 @@ package org.usfirst.frc.team4787.robot;
 
 import edu.wpi.first.wpilibj.Jaguar;
 import edu.wpi.first.wpilibj.SampleRobot;
-import edu.wpi.first.wpilibj.RobotDrive;
 import edu.wpi.first.wpilibj.Joystick;
-import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.CameraServer;
 
 /**
  * This is a demo program showing the use of the RobotDrive class.
@@ -46,6 +45,9 @@ public class Robot extends SampleRobot {
     
     public Robot() {
     	stick = new Joystick(0);
+    	CameraServer camera = CameraServer.getInstance();
+    	camera.setQuality(100);
+    	camera.startAutomaticCapture("cam0");
     }
 
     /**

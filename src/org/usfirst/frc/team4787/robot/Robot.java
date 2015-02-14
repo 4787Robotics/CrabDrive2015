@@ -14,6 +14,7 @@ import java.lang.Math;
 import java.util.Comparator;
 import java.util.Vector;
 
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Jaguar;
 import edu.wpi.first.wpilibj.SampleRobot;
 import edu.wpi.first.wpilibj.Joystick;
@@ -56,17 +57,17 @@ public class Robot extends SampleRobot
 	double LONG_RATIO = 2.22; //Tote long side = 26.9 / Tote height = 12.1 = 2.22
 	double SHORT_RATIO = 1.4; //Tote short side = 16.9 / Tote height = 12.1 = 1.4
 	double SCORE_MIN = 75.0;  //Minimum score to be considered a tote
-	double VIEW_ANGLE = 49.4; //View angle fo camera, set to Axis m1011 by default, 64 for m1013, 51.7 for 206, 52 for HD3000 square, 60 for HD3000 640x480
+	double VIEW_ANGLE = 49.4; //View angle for camera, set to Axis m1011 by default, 64 for m1013, 51.7 for 206, 52 for HD3000 square, 60 for HD3000 640x480
 	NIVision.ParticleFilterCriteria2 criteria[] = new NIVision.ParticleFilterCriteria2[1];
 	NIVision.ParticleFilterOptions2 filterOptions = new NIVision.ParticleFilterOptions2(0,0,1,1);
 	
 	
 	//Our constants
     Joystick drivestick, mechstick; JoystickButton trigger;
-    final int PERP_PWM = 0, RIGHT_PWM = 1, LEFT_PWM = 2, MECH1_PWM = 3, MECH2_PWM = 4, MECH_UP = 3, MECH_DOWN = 2, DRIVESTICK_NUM = 0, MECHSTICK_NUM = 1;
+    final int PERP_PWM = 0, RIGHT_PWM = 1, LEFT_PWM = 2, MECH1_PWM = 3, MECH2_PWM = 4, MECH_UP = 3, MECH_DOWN = 2, DRIVESTICK_NUM = 0, MECHSTICK_NUM = 1, UP_LIMIT = 0, DN_LIMIT = 1;
     final double DEADZONEX = 0.08, DEADZONEY = 0.08, DEADZONEMECH = 0.06;
     double lastTime = 0, expX = 0, expY = 0, x = 0, y = 0, z = 0, mechY = 0, mechZ = 0;
-    boolean STRAFEMODE = true; 
+    boolean STRAFEMODE = true, topLimited, bottomLimited; 
     int session; Image frame; Image binaryFrame; int imaqError;
     int autoSelect;
     String modestr;
@@ -76,6 +77,9 @@ public class Robot extends SampleRobot
     Jaguar perp = new Jaguar(PERP_PWM);
     Jaguar mech1 = new Jaguar(MECH1_PWM);
     Jaguar mech2 = new Jaguar(MECH2_PWM);
+    
+    DigitalInput topLimit = new DigitalInput(UP_LIMIT);
+    DigitalInput bottomLimit = new DigitalInput(DN_LIMIT);
     
     /**
     * Constructor for a 4787 Robot. 
@@ -98,6 +102,8 @@ public class Robot extends SampleRobot
         
         //SmartDashboard.putString("Drive Mode:", modestr);
         //autoSelect = (int)SmartDashboard.getNumber("Autonomous");
+        
+        System.out.println("setting meme threshold to 75% dank");
     } 
 
     /**
@@ -267,6 +273,10 @@ public class Robot extends SampleRobot
     		expX = Math.pow(x,3);
     		expY = Math.pow(y,3);
     		
+    		//Get limiter readings
+    		topLimited = !topLimit.get(); // Inverted because it doesnt work otherwise #justsoftwarethings
+    		bottomLimited = !bottomLimit.get();
+    		
     		//Camera setup
     		NIVision.IMAQdxGrab(session, frame, 1);
             CameraServer.getInstance().setImage(frame);
@@ -293,9 +303,9 @@ public class Robot extends SampleRobot
 	    		else
 	    		{
 	    			System.out.println("Strafe mode | x: " + x + "   y:" + y + "z:" + z);
-	    			left.set(-expY/2);
-	    			right.set(expY/2);
-	    			perp.set(-expX/2);
+	    			left.set(-expY);
+	    			right.set(expY);
+	    			perp.set(-expX);
 	    		}
     		}
     		else
@@ -305,8 +315,8 @@ public class Robot extends SampleRobot
     			perp.set(0);
     		}
     		
-    		//Move the mechanism depending on joystick input
-    		if(Math.abs(mechY) > DEADZONEMECH)
+    		//Move the mechanism depending on joystick input and check if limiters are activated
+    		if(Math.abs(mechY) > DEADZONEMECH && (!(Math.signum(mechY)==-1 && topLimited) && !(Math.signum(mechY)==1 && bottomLimited)))
     		{
     			System.out.println("Mech Y: " + mechY);
     			mech1.set(mechY);

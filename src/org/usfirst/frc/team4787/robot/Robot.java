@@ -37,12 +37,9 @@ public class Robot extends SampleRobot
     
     // PWM declarations
     Jaguar bLeft = new Jaguar(BLEFT_PWM);
-    Jaguar fLeft = new Jaguar(FLEFT_PWM) { @Override
-	public void set(double val){super.set(1.45/3.2 * val); }};
-    Jaguar bRight = new Jaguar(BRIGHT_PWM){ @Override
-	public void set(double val){super.set(1.45/3.2 * val); }};
-	
-    Jaguar fRight = new Jaguar(FRIGHT_PWM);
+    Jaguar fLeft = new Jaguar(FLEFT_PWM); //{ @Override public void set(double val){super.set(1.45/3.2 * val); }};
+    Jaguar bRight = new Jaguar(BRIGHT_PWM);
+    Jaguar fRight = new Jaguar(FRIGHT_PWM);//{ @Override public void set(double val);{super.set(1.45/3.2 * val); }};
     Jaguar mech1 = new Jaguar(MECH1_PWM);
     Jaguar mech2 = new Jaguar(MECH2_PWM);
     Jaguar[] motorList = {bLeft, fLeft, bRight, fRight, mech1, mech2};
@@ -92,8 +89,8 @@ public class Robot extends SampleRobot
     		expY = Math.pow(y,3);
     		
     		//Get limiter readings
-    		topLimited = !topLimit.get(); // Inverted because it doesn't work otherwise #justsoftwarethings
-    		bottomLimited = !bottomLimit.get();
+    		topLimited = topLimit.get(); // Inverted because it doesn't work otherwise #justsoftwarethings
+    		bottomLimited = bottomLimit.get();
     		
     		//Camera setup
     		NIVision.IMAQdxGrab(session, frame, 1);
@@ -102,10 +99,10 @@ public class Robot extends SampleRobot
     		//Move the robot depending on joystick input
     		if(Math.abs(x) > DEADZONEX || Math.abs(y) > DEADZONEY){
 	    		System.out.println("x: " + x + "  y: " + y + " z: " + z);
-	    		bLeft.set(x - y);
-	    		fLeft.set(x - y);
-	    		bRight.set(x + y);
-	    		fRight.set(x + y);
+	    		bLeft.set(x + -y);
+	    		fLeft.set(x + -y);
+	    		bRight.set(x - -y);
+	    		fRight.set(x - -y);
     		}
     		else
     		{
@@ -126,7 +123,6 @@ public class Robot extends SampleRobot
     		{
     			mech1.set(0);
     			mech2.set(0);
-    			if (Math.random()>.9) { System.out.println(Math.random()>.5 ? "TOO DANK" : "TOO MANY MEMES" ); } // lower frequency of memes
     		}
     	}
     	NIVision.IMAQdxStopAcquisition(session);
@@ -205,7 +201,7 @@ public class Robot extends SampleRobot
     		y = drivestick.getY();
     		if (trigger.get() || drivestick.getRawButton(1))
     		{
-    			if ((Timer.getFPGATimestamp() - lastTime) > 1)
+    			if ((Timer.getFPGATimestamp() - lastTime) > .5)
     			{
     				motorList[motorSwitch].set(0);
     				lastTime = Timer.getFPGATimestamp();

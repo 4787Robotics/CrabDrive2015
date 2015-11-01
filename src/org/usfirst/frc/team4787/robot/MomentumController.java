@@ -2,34 +2,40 @@ package org.usfirst.frc.team4787.robot;
 
 import edu.wpi.first.wpilibj.Jaguar;
 
+/* This code is untested and you probably shouldn't use it.  If you want to use *only the structure*
+*  for a future robot, make sure you check all those stupid magic numbers, and probably do the
+*  timing math over again for good measure.
+*/
 public class MomentumController extends Jaguar {
 
 	public MomentumController(int channel) {
 		super(channel);
 	}
 	
-	public static double TICKVAL = .07; // originally .1
-	public static double DEADZONE = 0.02; // originally 0.06
-	public static double MAXLOW = -.06; // originally -.5
+	public static double TICKVAL = .1;
+	public static double DEADZONE = 0.06;
+	public static double MAXLOW = -.4;
 	public static double MAXHIGH = .17;
 	
 	
 	/* 
 	 * TEMP CHANGES: Mech securing mechanism broke on 7/18/2015 (MSI).  MAXLOW has been changed, MAXHIGH has been added.  In addition, TICKVAL has been halved.
 	 * Please remove this note when the mech is fixed with something other than zip ties.
+	 * 
+	 *  Mechanism has been repaired; changes have been reverted - but this code isn't used anymore anyway.
 	 */
 	
 	private double velocity = 0;
 	
 	public void set (double in, boolean precise) {
-		if (precise) { // return to direct control if button is pressed		// PRECISION MODE HAS BEEN DISABLED WHILE THE MECH IS NOT STABLE - REPLACE WHEN FIXED
-			super.set(in*.3); //constant added instead of outright removal
+		if (precise) { // return to direct control if button is pressed
+			super.set(in*.5); // Increased, but still less powerful than true direct control.
 			velocity = 0;
 			return;
 		}
 		
 		
-		// MAXIC NUMBERS EVERYWHERE
+		// MAGIC NUMBERS EVERYWHERE
 		
 		if (alive(in)) {
 			velocity+=(2*TICKVAL*in);
@@ -37,7 +43,7 @@ public class MomentumController extends Jaguar {
 		else {
 			if (alive(velocity)) { // DECAY bullshit
 					if (velocity>0) {
-						velocity-=TICKVAL*2; // magic number changed from 25 to allow low-speed up movements
+						velocity-=TICKVAL*25; // value changed from 25 to 2 to 25 again
 						if (velocity<0) { velocity = 0; } // if we went too far go back to 0
 					}
 					if (velocity<0) {
